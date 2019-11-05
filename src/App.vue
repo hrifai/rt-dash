@@ -1,32 +1,90 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
-  </div>
+    <v-app>
+      <v-navigation-drawer v-model="drawer" app clipped>
+        <v-list dense>
+          <v-list-item v-for="item in menuItems" :key="JSON.stringify(item)" @click="$router.push(item.route)">
+            <v-list-item-action>
+              <v-icon>{{item.icon}}</v-icon>
+            </v-list-item-action>
+            <v-list-item-content>
+              <v-list-item-title>{{item.text}}</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-navigation-drawer>
+
+      <v-app-bar app clipped-left>
+        <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+        <v-flex xs8>
+          <v-toolbar-title>[Rifai Tech] Dashboard</v-toolbar-title>
+        </v-flex>
+        <v-flex xs4>
+                Sydney: <v-icon class="ml-2 mr-2">mdi-clock</v-icon> {{time}}
+                <v-icon class="ml-5 mr-2">mdi-cloud</v-icon> {{weather.feelslike}}<sup>o</sup>C
+        </v-flex>
+      </v-app-bar>
+
+      <v-content>
+        <v-container fluid fill-height>
+          <v-layout align-center justify-center>
+            <router-view></router-view>
+          </v-layout>
+        </v-container>
+      </v-content>
+
+      <v-footer app>
+        <span>&copy; 2019</span>
+      </v-footer>
+    </v-app>
 </template>
 
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
+import HelloWorld from "./components/HelloWorld";
 
-#nav {
-  padding: 30px;
-}
+export default {
+  name: "App",
+  components: {
+    HelloWorld
+  },
+  async beforeMount() {
+    this.weather = await this.getWeatherData('sydney');
+    this.time = new Date().toLocaleTimeString();
+    var timeKeeper = setInterval(() => {
+        this.time = new Date().toLocaleTimeString()
+    },1000)
+  },
+  data: () => ({
+    drawer: null,
+    weather: {
+        feelslike: '',
+        imageUrl: ''
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-#nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+    },
+    time: "",
+    menuItems: [{
+        text: 'Home',
+        route: '/',
+        icon: 'mdi-home'
+    },{
+        text: 'Devices',
+        route: '/',
+        icon: 'mdi-desk-lamp'
+    },
+    {
+        text: 'Tasks',
+        route: '/',
+        icon: 'mdi-ballot-outline'
+    },
+    {
+        text: 'People',
+        route: '/',
+        icon: 'mdi-account'
+    }]
+  }), methods:{
+      async getWeatherData(city){
+         var res = await this.$axios.get(`http://localhost:3000/weather?city=${city}`)
+          return res.data.current;
+      }
+  }
+};
+</script>
