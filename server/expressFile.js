@@ -41,11 +41,11 @@ client.startDiscovery().on("device-new", async (device) => {
     //set listeners to update state on power change
     var listenTo = [{
         state: 'power-on',
-        callback: (device) => {getDeviceFromMemory(device).lastState = true},
+        callback: (device) => {getDeviceFromMemory(device.host).lastState = true},
     },
     {
         state: 'power-off',
-        callback: (device) => {getDeviceFromMemory(device).lastState = false},
+        callback: (device) => {getDeviceFromMemory(device.host).lastState = false},
     }];
 
     listenTo.forEach(instruction => {
@@ -61,7 +61,7 @@ setTimeout( () => {
 
 app.get('/toggle', async (req, res) => {
     var ip = req.param('ip');
-    var device = await client.getDevice({host: ip});
+    var device = getDeviceFromMemory(ip);
     var currentState = await device.getPowerState();
     device.setPowerState(!currentState);
     res.send({
@@ -100,6 +100,6 @@ app.listen(port, () => console.log(`[RT] server listening on port ${port}!`));
 // ********* UTIL FUNCTIONS **********
 // These are going to be refactored into a utils file
 
-function getDeviceFromMemory(device){
-    return sessionDevices.filter(dev => device.host === ip)[0];
+function getDeviceFromMemory(deviceIp){
+    return sessionDevices.filter(dev => deviceIp === ip)[0];
 }
